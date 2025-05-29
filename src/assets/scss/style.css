@@ -1,0 +1,173 @@
+.dt-layout-cell > .dt-info {
+  padding-left: 1.5rem;
+}
+
+.dt-layout-cell > .dt-length {
+  padding-left: 1.5rem;
+}
+.dt-layout-cell > .dt-search {
+  padding-right: 1.5rem;
+}
+.dt-layout-cell > .paging_full_numbers {
+  padding-right: 1.5rem;
+}
+
+table.dataTable > thead > tr > th:first-child,
+table.dataTable > tbody > tr > td:first-child {
+  padding-left: 1.5rem;
+}
+
+table.dataTable > thead > tr > th:last-child,
+table.dataTable > tbody > tr > td:last-child {
+  padding-right: 1.5rem;
+}
+
+table.dataTable thead > tr > th.dt-orderable-asc:hover,
+table.dataTable thead > tr > th.dt-orderable-desc:hover,
+table.dataTable thead > tr > td.dt-orderable-asc:hover,
+table.dataTable thead > tr > td.dt-orderable-desc:hover {
+  outline: none !important;
+}
+
+table.dataTable > thead > tr > th,
+table.dataTable > thead > tr > td {
+  border-bottom: 0px !important;
+}
+
+div.dt-container.dt-empty-footer tbody > tr:last-child > * {
+  border-color: rgb(241 245 249 / var(--tw-divide-opacity)) !important;
+}
+
+.dt-layout-cell > .paging_full_numbers {
+  @apply flex justify-end  items-center  space-x-3  rtl:space-x-reverse  !important;
+}
+
+.dt-layout-cell > .paging_full_numbers > .dt-paging-button:not(button.previous, button.first, button.next, button.last, button.current) {
+  @apply bg-slate-100 dark:bg-slate-700 dark:text-slate-400 text-slate-900  font-normal      text-sm rounded leading-[16px] flex h-6 w-6 items-center justify-center transition-all duration-150 !important;
+}
+
+.dt-layout-cell > .paging_full_numbers > .dt-paging-button {
+  @apply text-slate-900 text-white  font-normal      text-sm rounded leading-[16px]  p-1.5 items-center justify-center transition-all duration-150 !important;
+}
+
+.dt-layout-cell > .paging_full_numbers > .dt-paging-button.current {
+  @apply bg-slate-900 dark:bg-slate-600  dark:text-slate-200 text-[#FFFFFF] font-medium     text-sm  rounded leading-[16px] flex h-6 w-6 items-center justify-center transition-all duration-150 !important;
+}
+
+.dt-layout-cell > .paging_full_numbers > .dt-paging-button.first,
+.dt-layout-cell > .paging_full_numbers > .dt-paging-button.last {
+  @apply text-xl leading-4 text-slate-900 dark:text-white rtl:rotate-180 !important;
+}
+
+.dt-layout-cell > .paging_full_numbers > .dt-paging-button.previous,
+.dt-layout-cell > .paging_full_numbers > .dt-paging-button.next {
+  @apply text-sm leading-4 text-slate-900 dark:text-white rtl:rotate-180 !important;
+}
+
+.dt-layout-cell > .paging_full_numbers > .dt-paging-button.disabled {
+  @apply opacity-50 cursor-not-allowed !important;
+}
+
+div.dt-container .dt-paging .dt-paging-button.current,
+div.dt-container .dt-paging .dt-paging-button.current:hover {
+  @apply text-white !important;
+}
+
+div.dt-container .dt-paging .dt-paging-button:not(button.previous, button.first, button.next, button.last, button.current):hover,
+div.dt-container .dt-paging .dt-paging-button:not(button.previous, button.first, button.next, button.last, button.current):active {
+  border: none;
+  background: rgb(241 245 249 / 1) !important;
+}
+
+@media screen and (max-width: 767px) {
+  div.dt-container div.dt-layout-cell.dt-full,
+  div.dt-container div.dt-layout-cell.dt-start,
+  div.dt-container div.dt-layout-cell.dt-end {
+    display: flex;
+    justify-content: center;
+  }
+}
+
+.Toastify__toast-container {
+  z-index: 100000 !important;
+}
+
+div.dt-container .dt-search input {
+  outline: none;
+}
+
+div.dt-container.dt-empty-footer .dt-scroll-body {
+  border-bottom: none;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.nested-ul ul {
+  padding: 0;
+  margin: 0;
+}
+
+.nested-ul ul li {
+  display: block;
+}
+
+.nested-ul ul li:hover {
+  cursor: pointer;
+  background: #f1f5f9;
+}
+
+.nested-ul li ul {
+  background-color: #fff;
+}
+
+.nested-ul ul ul li {
+  /* padding-left: 3%; */
+}
+
+.nested-ul ul li .nul-row {
+  display: flex;
+}
+
+.dashcode-app .react-select.has-error .select__control.select__control--is-focused,
+.dashcode-app .react-select.has-error .select__control.react-select_control--is-focused,
+.dashcode-app .react-select.has-error .react-select_control.select_control--is-focused,
+.dashcode-app .react-select.has-error .react-select_control.react-select_control--is-focused {
+  box-shadow: none;
+  --tw-border-opacity: 1;
+  @apply border-danger-500 focus:ring-danger-500  focus:ring-opacity-90 focus:ring-1;
+}
+
+.dashcode-app .select__menu .select__menu-list .select__group .select__group-heading,
+.dashcode-app .select__menu .react-select__menu-list .select__group .select__group-heading,
+.dashcode-app .react-select__menu .select__menu-list .select__group .select__group-heading,
+.dashcode-app .react-select__menu .react-select__menu-list .select__group .select__group-heading {
+  @apply text-slate-400;
+}
+
+.flatpickr-monthSelect-months .flatpickr-monthSelect-month.selected {
+  background-color: #111112;
+  font-weight: bold;
+  border-color: #111112;
+}
+
+.has-error .flatpickr-input,
+.has-error .form-control {
+  border-color: red !important;
+}
+
+.PhoneInputInput {
+  outline: none;
+}
+
+.text-dark {
+  color: black;
+}
+
