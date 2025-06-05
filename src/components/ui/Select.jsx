@@ -21,6 +21,7 @@ const Select = ({
   onChange,
   options,
   defaultValue,
+  isMulti,
 
   size,
   ...rest

@@ -99,7 +99,7 @@ const Navmenu = ({ menus }) => {
                 </NavLink>
               )}
               {/* only for menulabel */}
-              {item.isHeadr && !item.child && <div className="menulabel">{item.title}</div>}
+              {item.isHeadr && !item.child && <div className="menulabel text-black-500">{item.title}</div>}
               {/*    !!sub menu parent   */}
               {item.child && (
                 <div

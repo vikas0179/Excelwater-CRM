@@ -6,42 +6,58 @@ import Card from "@/components/ui/Card";
 import Textinput from "@/components/ui/Textinput";
 import Button from "@/components/ui/Button";
 import { toast } from "react-toastify";
-import { API_SUPPLIER_ADD, API_EDIT_SUPPLIER } from "@/services/ApiEndPoint";
+import { API_SUPPLIER_ADD, API_EDIT_SUPPLIER, API_GET_ALL_SPARE_PARTS_DATA } from "@/services/ApiEndPoint";
 import Api from "@/services/ApiServices";
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
+import Select from "react-select";
+
 
 
 export const AddSupplier = () => {
 
   const [loading, setLoading] = useState(false);
   const [logoPreview, setLogoPreview] = useState(null);
+  const [sparePartsOptions, setSparePartsOptions] = useState([]);
+  const [selectedOptions, setSelectedOptions] = useState([]);
+
 
   const navigate = useNavigate();
 
   const location = useLocation();
   const supplierData = location.state?.supplierData || null;
 
-   const fromPage = location.state?.from;
+  const fromPage = location.state?.from;
 
-   console.log("fromPage", fromPage)
+  console.log("fromPage", fromPage)
 
 
   console.log("Supplier Data:", supplierData);
 
 
-  const isEditMode = !!supplierData; // Edit mode detect karne ke liye
+  const isEditMode = !!supplierData;
 
 
-  const { register, handleSubmit, setValue, formState: { errors } } = useForm({
+  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm({
     defaultValues: {
       name: supplierData?.name || "",
       email: supplierData?.email || "",
       phone: supplierData?.phone || "",
       address: supplierData?.address || "",
       tan_number: supplierData?.tan_number || "",
+     spare_parts: supplierData?.spare_part_ids
+    ? supplierData.spare_part_ids.split(",").map(Number)
+    : [],
     },
   });
+
+  useEffect(() => {
+    register("spare_parts", {
+      validate: (value) => (value && value.length > 0) || "Please select at least one Raw Material"
+    });
+  }, [register]);
+
+
 
   useEffect(() => {
     if (supplierData) {
@@ -52,6 +68,51 @@ export const AddSupplier = () => {
       setValue("tan_number", supplierData.tan_number);
     }
   }, [supplierData, setValue]);
+
+  useEffect(() => {
+    const getSpareparts = async () => {
+      try {
+        const response = await Api.post(API_GET_ALL_SPARE_PARTS_DATA);
+        if (response.data && Array.isArray(response.data)) {
+          const options = response.data.map(part => ({
+            label: part.part_name,
+            value: part.id,
+          }));
+          setSparePartsOptions(options);
+        }
+      } catch (error) {
+        setSparePartsOptions([]);
+      }
+    };
+    getSpareparts();
+  }, []);
+
+useEffect(() => {
+  if (supplierData?.spare_part_ids && sparePartsOptions.length > 0) {
+    const sparePartIds = supplierData.spare_part_ids
+      .split(",")
+      .map((id) => Number(id.trim()));
+
+    const selected = sparePartsOptions.filter((option) =>
+      sparePartIds.includes(option.value)
+    );
+
+    setSelectedOptions(selected);
+
+    setValue(
+      "spare_parts",
+      selected.map((opt) => opt.value),
+      { shouldValidate: true }
+    );
+  }
+}, [supplierData, sparePartsOptions, setValue]);
+
+
+console.log("supplierData.spare_parts", supplierData?.spare_parts);
+
+
+
+
 
 
   const onSubmit = async (data) => {
@@ -68,8 +129,16 @@ export const AddSupplier = () => {
       }
 
 
+      if (data.spare_parts && data.spare_parts.length > 0) {
+        data.spare_parts.forEach((id) => {
+          formData.append("spare_part_ids[]", id);
+        });
+      }
+
+
+
       if (isEditMode) {
-        formData.append("id", supplierData.id); 
+        formData.append("id", supplierData.id);
       }
 
       if (isEditMode) {
@@ -84,18 +153,19 @@ export const AddSupplier = () => {
 
       navigate("/manage-supplier");
 
-       if (fromPage === "addorder") {
-      navigate("/manage-order/add");
-    } else if (fromPage === "manage-supplier") {
-      navigate("/manage-supplier");
-    } else {
-      navigate("/manage-supplier"); 
-    }
+      if (fromPage === "addorder") {
+        navigate("/manage-order/add");
+      } else if (fromPage === "manage-supplier") {
+        navigate("/manage-supplier");
+      } else {
+        navigate("/manage-supplier");
+      }
 
     } catch (error) {
       alert("Failed to save supplier");
     }
   };
+
 
 
 
@@ -109,10 +179,35 @@ export const AddSupplier = () => {
       <Card title={isEditMode ? "Edit Supplier" : "Add Supplier"} className="mx-auto max-w-4xl">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {/* Name, Email, Phone */}
-          <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Textinput name="name" label="Full Name*" type="text" placeholder="Enter full name" register={register} error={errors.name}
               rules={{ required: "Name is required" }} />
+
+            <div>
+              <label className="text-black-500  text-sm dark:text-slate-300">Raw Material*</label>
+              <Select
+                isMulti
+                options={sparePartsOptions}
+                value={selectedOptions}
+                className="mt-2 dark:bg-slate-900 dark:border-slate-700"
+                onChange={selected => {
+                  setSelectedOptions(selected || []);
+                  const values = selected ? selected.map(opt => opt.value) : [];
+                  setValue("spare_parts", values, { shouldValidate: true });
+                }}
+              />
+              {errors.spare_parts && (
+                <p style={{ color: "red" }}>{errors.spare_parts.message}</p>
+              )}
+
+            </div>
+
+
+
+
+
           </div>
+
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Textinput
@@ -153,8 +248,8 @@ export const AddSupplier = () => {
 
           {/* TAN Number and Logo Upload */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Textinput name="tan_number" label="TAN Number*" type="text" placeholder="Enter TAN Number" register={register} error={errors.tan_number}
-              rules={{ required: "Tan Number is required" }} />
+            <Textinput name="tan_number" label="TAN Number" type="text" placeholder="Enter TAN Number " register={register} />
+
             <div>
               <label className="form-label">Company Logo</label>
               <input

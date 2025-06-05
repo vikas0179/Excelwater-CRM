@@ -1,6 +1,6 @@
 // export const BASE_URL = window.location.hostname == "crm.kentwater.ca" ? "https://api.kentwater.ca/" : "https://devcrmapi.kentwater.ca/";
 export const BASE_URL = "https://crmapi.excelwater.ca/public/";
-// export const BASE_URL = "http://192.168.29.191/kentro-api/public/";
+// export const BASE_URL = "http://192.168.29.191/Excelwater-CRM-API/public/";
 export const API_URL = BASE_URL + "api/admin";
 
 //login
@@ -124,6 +124,7 @@ export const API_MANAGE_ORDER_LIST = "orders";
 export const API_EDIT_ORDER = "edit_order";
 export const API_DELETE_ORDER = "delete_order";
 export const API_EDIT_ORDER_DETAILS = "edit_order_details";
+export const API_GET_SUPPLIERWISE_SPAREPARTS = "get_supplier_wise_sparepart";
 
 // invoice
 export const API_INVOCIE_ADD = "add_invoice";

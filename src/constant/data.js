@@ -119,7 +119,7 @@ export const manuData = () => {
   ];
 
  if (role == 0) {
-  // Add main items
+  
   menuItems.splice(menuItems.length - 1, 0, 
 
     {
@@ -139,7 +139,7 @@ export const manuData = () => {
     },
     {
       title: "Masters",
-      isHeader: true
+      isHeadr: true
     },
     {
       title: "Raw Materials",

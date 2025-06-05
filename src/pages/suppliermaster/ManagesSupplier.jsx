@@ -104,17 +104,22 @@ export const ManagesSupplier = () => {
         {
             Header: "Name",
             accessor: "name",
-            Cell: ({ row }) => (
-                <div className="flex items-center gap-2">
-                    <img
-                        src={row.original.logo}
-                        alt="Supplier Logo"
-                        className="w-10 h-10 rounded-full object-cover"
-                    // onError={(e) => (e.target.src = "/default-logo.png")}
-                    />
-                    <span>{row.original.name}</span>
-                </div>
-            )
+            Cell: ({ row }) => {
+                const { logo, logo_name, name } = row.original;
+
+                return (
+                    <div className="flex items-center gap-2 w-full">
+                        {logo_name?.trim() ? (
+                            <img
+                                src={logo}
+                                alt="Supplier Logo"
+                                className="w-10 h-10 rounded-full object-cover"
+                            />
+                        ) : null}
+                        <span>{name}</span>
+                    </div>
+                );
+            }
         },
         {
             Header: "Email",
@@ -129,8 +134,8 @@ export const ManagesSupplier = () => {
             accessor: "address"
         },
         {
-            Header: "TAN Number",
-            accessor: "tan_number"
+            Header: "Raw Material Name",
+            accessor: "spare_part_names"
         },
         {
             Header: <div className="text-end">Action</div>,

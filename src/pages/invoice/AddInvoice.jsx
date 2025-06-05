@@ -55,39 +55,39 @@ export const AddInvoice = () => {
 
 
 
-  useEffect(() => {
-    const fetchCustomers = async () => {
-        try {
-            const response = await Api.get(API_CUSTOMER_MANAGE_LIST);
-            if (response.data.data) {
-                const customerList = response.data.data.map((c) => ({
-                    id: c.id,
-                    label: c.name,
-                    value: c.name,
-                    billingAddress: `${c.billing_address}, ${c.billing_landmark}, ${c.billing_city}, ${c.billing_state}, ${c.billing_zipcode}`,
-                    shippingAddress: `${c.shipping_address}, ${c.shipping_landmark}, ${c.shipping_city}, ${c.shipping_state}, ${c.shipping_zipcode}`,
-                }));
-                setCustomers(customerList);
+    useEffect(() => {
+        const fetchCustomers = async () => {
+            try {
+                const response = await Api.get(API_CUSTOMER_MANAGE_LIST);
+                if (response.data.data) {
+                    const customerList = response.data.data.map((c) => ({
+                        id: c.id,
+                        label: c.name,
+                        value: c.name,
+                        billingAddress: `${c.billing_address}, ${c.billing_landmark}, ${c.billing_city}, ${c.billing_state}, ${c.billing_zipcode}`,
+                        shippingAddress: `${c.shipping_address}, ${c.shipping_landmark}, ${c.shipping_city}, ${c.shipping_state}, ${c.shipping_zipcode}`,
+                    }));
+                    setCustomers(customerList);
 
-                // 👇 Auto-select customer if editing
-                if (invoiceData) {
-                    const selected = customerList.find(c => c.id === invoiceData.customer_id);
-                    if (selected) {
-                        setSelectedSupplier(selected.label);
-                        setCustomerId(selected.id);
-                        setBillingAddress(selected.billingAddress);
-                        setShippingAddress(selected.shippingAddress);
-                        setSearchTerm(selected.label);
+                    // 👇 Auto-select customer if editing
+                    if (invoiceData) {
+                        const selected = customerList.find(c => c.id === invoiceData.customer_id);
+                        if (selected) {
+                            setSelectedSupplier(selected.label);
+                            setCustomerId(selected.id);
+                            setBillingAddress(selected.billingAddress);
+                            setShippingAddress(selected.shippingAddress);
+                            setSearchTerm(selected.label);
+                        }
                     }
                 }
+            } catch (error) {
+                console.error("Failed to fetch customers:", error);
+                setCustomers([]);
             }
-        } catch (error) {
-            console.error("Failed to fetch customers:", error);
-            setCustomers([]);
-        }
-    };
-    fetchCustomers();
-}, [invoiceData]);
+        };
+        fetchCustomers();
+    }, [invoiceData]);
 
 
 
@@ -245,7 +245,7 @@ export const AddInvoice = () => {
             }
 
             if (response.data) {
-              
+
                 navigate("/manage-invoice");
             } else {
                 toast.error(response.data?.message);
@@ -307,18 +307,18 @@ export const AddInvoice = () => {
                         <div className="space-y-4">
                             {/* Customer Search */}
                             <div className="relative">
-                               <input
-    type="text"
-    value={searchTerm}
-    onChange={handleSearch}
-    placeholder="Search Customer"
-    className="border p-2 rounded w-full mt-2 pr-8" 
-  />
+                                <input
+                                    type="text"
+                                    value={searchTerm}
+                                    onChange={handleSearch}
+                                    placeholder="Search Customer"
+                                    className="border p-2 rounded w-full mt-2 pr-8 dark:bg-slate-900 dark:border-slate-700"
+                                />
 
-<Link className="absolute right-3 top-7 btn btn-outline-dark px-2 py-1 transform -translate-y-1/2 text-gray-400 cursor-pointer select-none" to="/manage-customer/add" state={{ from: "addinvoice" }}>
-    <FaPlus size={20} />
+                                <Link className="absolute right-3 top-7 btn btn-outline-dark px-2 py-1 transform -translate-y-1/2 text-gray-400 cursor-pointer select-none" to="/manage-customer/add" state={{ from: "addinvoice" }}>
+                                    <FaPlus size={20} />
 
-</Link>
+                                </Link>
 
 
                                 {filteredSuppliers.length > 0 && (
@@ -376,7 +376,7 @@ export const AddInvoice = () => {
                                 label="Description"
                                 id="details"
                                 placeholder="Enter Invoice details..."
-                                className=" w-full border p-2"
+                                className=" w-full border p-2 dark:bg-slate-900 dark:border-slate-700 rounded-md"
                                 {...register("description", { required: "Invoice description is required." })}
                             />
                             {errors.description && (
@@ -390,9 +390,9 @@ export const AddInvoice = () => {
                     <div className="grid lg:grid-cols-2 grid-cols-1 md:grid-cols-1 gap-4 mt-4">
 
                         <div>
-                            <label className="text-sm font-medium">Invoice Number</label>
+                            <label className="text-sm font-medium text-black-500 dark:text-slate-300">Invoice Number</label>
                             <div className="flex rounded-lg">
-                                <span className="px-4 inline-flex items-center min-w-fit rounded-s-md border border-e-0 border-gray-200 bg-gray-50 text-sm text-gray-500 dark:bg-neutral-700 dark:border-neutral-700 dark:text-neutral-400">INV-</span>
+                                <span className="px-4 inline-flex items-center min-w-fit rounded-s-md border border-e-0 border-gray-200 bg-gray-50 text-sm text-gray-500 dark:bg-neutral-700 dark:border-neutral-700 dark:text-neutral-400 dark:bg-slate-900 dark:border-slate-700">INV-</span>
                                 <input
                                     type="text"
                                     value={invoiceNumber}
@@ -400,13 +400,13 @@ export const AddInvoice = () => {
                                         const value = e.target.value.replace(/\D/g, "").slice(0, 6); // Sirf numbers allow karega aur max 6 digits tak limit karega
                                         setInvoiceNumber(value);
                                     }}
-                                    className="py-1.5 sm:py-2 px-3 pe-11 block w-full border border-gray-200 rounded-e-lg sm:text-sm "
+                                    className="dark:bg-slate-900 dark:border-slate-700 py-1.5 sm:py-2 px-3 pe-11 block w-full border border-gray-200 rounded-e-lg sm:text-sm "
                                 />
                             </div>
 
                         </div>
                         <div>
-                            <label className="text-sm font-medium">Invoice Upload</label>
+                            <label className="text-sm font-medium text-black-500 dark:text-slate-300">Invoice Upload</label>
                             <Fileinput
                                 name="basic"
                                 selectedFile={selectedFile}
@@ -448,12 +448,12 @@ export const AddInvoice = () => {
 
                     <div className="grid lg:grid-cols-2 grid-cols-1 md:grid-cols-1 gap-4 mt-4">
                         <div>
-                            <label className="text-sm font-medium">Invoice Date</label>
+                            <label className="text-sm font-medium text-black-500 dark:text-slate-300">Invoice Date</label>
                             <input
                                 type="date"
                                 value={invoiceDate}
                                 onChange={(e) => setInvoiceDate(e.target.value)}
-                                className="border p-2 rounded w-full"
+                                className="border p-2 rounded w-full dark:bg-slate-900 dark:border-slate-700"
                             />
                         </div>
                     </div>
@@ -462,9 +462,9 @@ export const AddInvoice = () => {
                     {/* Spare Parts Selection */}
                     <div className="grid lg:grid-cols-2 grid-cols-1 md:grid-cols-1 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-600">Products</label>
+                            <label className="block text-sm font-medium text-black-500 dark:text-slate-300 ">Products</label>
                             <div className="flex items-center gap-2 mt-2">
-                                <select onChange={(e) => setSelectedProduct(e.target.value)} className="border p-2 rounded w-full">
+                                <select onChange={(e) => setSelectedProduct(e.target.value)} className="border p-2 rounded w-full dark:bg-slate-900 dark:border-slate-700">
                                     <option value="">Select Product</option>
                                     {product.map((product) => (
                                         <option key={product.id} value={product.id}>
@@ -480,9 +480,9 @@ export const AddInvoice = () => {
                     </div>
 
                     <Card bodyClass="p-0 overflow-x-auto">
-                        <table className="w-full border min-w-[600px]">
+                        <table className="w-full border min-w-[600px] ">
                             <thead>
-                                <tr className="bg-gray-100">
+                                <tr className="bg-gray-100 dark:bg-slate-900 dark:border-0">
                                     <th className="p-2 border">Item</th>
                                     <th className="p-2 border">Description</th>
                                     <th className="p-2 border">Qty</th>
@@ -499,14 +499,14 @@ export const AddInvoice = () => {
                                                 type="text"
                                                 value={part.name}
                                                 readOnly
-                                                className="w-full py-2 px-2 border rounded-md"
+                                                className="w-full py-2 px-2 border rounded-md dark:bg-slate-900 dark:border-slate-700"
                                             />
                                         </td>
                                         <td className="p-2 border">
                                             <textarea
                                                 value={part.description}
                                                 onChange={(e) => updatePart(index, "description", e.target.value)}
-                                                className="w-full py-2 px-2 border rounded-md"
+                                                className="w-full py-2 px-2 border rounded-md dark:bg-slate-900 dark:border-slate-700"
                                             ></textarea>
                                         </td>
                                         <td className="p-2 border">
@@ -514,7 +514,7 @@ export const AddInvoice = () => {
                                                 type="number"
                                                 value={part.qty === "" ? "" : part.qty}
                                                 onChange={(e) => updatePart(index, "qty", Number(e.target.value))}
-                                                className="w-full py-2 px-2 border rounded-md"
+                                                className="w-full py-2 px-2 border rounded-md dark:bg-slate-900 dark:border-slate-700"
                                             />
                                         </td>
                                         <td className="p-2 border">
@@ -522,7 +522,7 @@ export const AddInvoice = () => {
                                                 type="number"
                                                 value={part.rate}
                                                 readOnly
-                                                className="w-full py-2 px-2 border rounded-md"
+                                                className="w-full py-2 px-2 border rounded-md dark:bg-slate-900 dark:border-slate-700"
                                             />
                                         </td>
                                         <td className="p-2 border text-center">

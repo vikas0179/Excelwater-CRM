@@ -9,6 +9,7 @@ import {
   API_GET_ALL_SPARE_PARTS_DATA,
   API_GET_ALL_SUPPLIER_DATA,
   API_ORDER_ADD,
+  API_GET_SUPPLIERWISE_SPAREPARTS,
   API_EDIT_ORDER,
 } from "@/services/ApiEndPoint";
 import Api from "@/services/ApiServices";
@@ -31,28 +32,33 @@ export const AddOrder = () => {
   const [selectedPartId, setSelectedPartId] = useState("");
   const [description, setDescription] = useState("");
 
+
+
   const navigate = useNavigate();
   const location = useLocation();
 
   const orderData = location.state?.orderData;
 
-  useEffect(() => {
-    if (orderData) {
-      setValue("supplier", orderData.supplier_id);
-      setValue("details", orderData.desc);
+  const selectedSupplier = watch("supplier");
 
-      if (orderData.order_items) {
-        const formattedParts = orderData.order_items.map((item) => ({
-          name: item.item,
-          description: item.desc || "",
-          qty: item.qty || 1,
-          rate: item.rate || 0,
-          amount: item.amount || 0,
-        }));
-        setSelectedParts(formattedParts);
-      }
-    }
-  }, [orderData, setValue]);
+  // useEffect(() => {
+  //   if (orderData) {
+  //     setValue("supplier", orderData.supplier_id);
+  //     setValue("details", orderData.desc);
+
+  //     if (orderData.order_items) {
+  //       const formattedParts = orderData.order_items.map((item) => ({
+  //         name: item.item,
+  //         description: item.desc || "",
+  //         qty: item.qty || 1,
+  //         rate: item.rate || 0,
+  //         amount: item.amount || 0,
+  //       }));
+  //       setSelectedParts(formattedParts);
+  //     }
+  //   }
+  // }, [orderData, setValue]);
+
 
   useEffect(() => {
     if (orderData) {
@@ -62,18 +68,73 @@ export const AddOrder = () => {
   }, [orderData, setValue]);
 
   useEffect(() => {
-    const getSpareparts = async () => {
+    const fetchSparePartsBySupplier = async (supplierId) => {
+      if (!supplierId) {
+        setSparePartsOptions([]);
+        setSelectedPartId("");
+        setSelectedParts([]);
+        return;
+      }
+
       try {
-        const response = await Api.post(API_GET_ALL_SPARE_PARTS_DATA);
+
+        const formData = new FormData();
+        formData.append("id", supplierId);
+
+        const response = await Api.post(API_GET_SUPPLIERWISE_SPAREPARTS, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+
+
         if (response.data && Array.isArray(response.data)) {
           setSparePartsOptions(response.data);
+          setSelectedPartId("");
+        } else {
+          setSparePartsOptions([]);
         }
       } catch (error) {
         setSparePartsOptions([]);
       }
     };
-    getSpareparts();
-  }, []);
+
+    fetchSparePartsBySupplier(selectedSupplier);
+  }, [selectedSupplier]);
+
+
+  useEffect(() => {
+  if (orderData && sparePartsOptions.length > 0) {
+    // Map order items to match available spare parts in current options
+    const formattedParts = orderData.order_items
+      .map((item) => {
+        // Confirm part exists in sparePartsOptions for this supplier
+        const matchingPart = sparePartsOptions.find(
+          (spare) => spare.part_name === item.item
+        );
+        if (!matchingPart) return null;
+
+        return {
+          name: item.item,
+          description: item.desc || "",
+          qty: item.qty || 1,
+          rate: item.rate || 0,
+          amount: item.amount || 0,
+        };
+      })
+      .filter(Boolean); // remove nulls if any
+
+    setSelectedParts(formattedParts);
+  }
+}, [sparePartsOptions, orderData]);
+
+
+useEffect(() => {
+  if (orderData) {
+    setValue("supplier", orderData.supplier_id);
+    setDescription(orderData.desc || "");
+    setValue("details", orderData.desc || "");
+    // Note: selectedParts ko sparePartsOptions ke aane par set karenge, isliye yaha nahi karenge
+  }
+}, [orderData, setValue]);
 
   useEffect(() => {
     const getSupplier = async () => {
@@ -188,14 +249,15 @@ export const AddOrder = () => {
             <div className="space-y-4">
               {/* Supplier Dropdown */}
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">
+                <label className="block text-sm font-medium text-black-500 mb-1 dark:text-slate-300">
                   Supplier
                 </label>
                 <div className="flex items-center space-x-2 mt-2">
                   <select
-                    className="border p-2 rounded w-full"
+                    className="border p-2 rounded w-full dark:bg-slate-900 dark:border-slate-700"
                     {...register("supplier", { required: "Supplier is required" })}
-                    defaultValue={orderData?.supplier_id || ""}
+                    value={selectedSupplier || ""}
+
                   >
                     <option value="">Select Supplier</option>
                     {suppliers.map((supplier) => (
@@ -221,16 +283,17 @@ export const AddOrder = () => {
 
               {/* Spare Parts Dropdown */}
               <div>
-                <label className="block text-sm font-medium text-gray-600">
+                <label className="block text-sm font-medium text-black-500 dark:text-slate-300">
                   Raw Material
                 </label>
                 <div className="flex items-center gap-2 mt-2">
                   <select
                     onChange={(e) => setSelectedPartId(e.target.value)}
-                    className="border p-2 rounded w-full"
+                    className="border p-2 rounded w-full dark:bg-slate-900 dark:border-slate-700s"
                     value={selectedPartId}
+                    disabled={!selectedSupplier} // disable if no supplier selected
                   >
-                    <option value="">Select Spare Part</option>
+                    <option value="">Select Raw Material</option>
                     {sparePartsOptions
                       .filter(
                         (part) =>
@@ -258,7 +321,7 @@ export const AddOrder = () => {
 
             {/* Description */}
             <div>
-              <label>Description</label>
+              <label className="text-black-500 dark:text-slate-300">Description</label>
               <textarea
                 id="details"
                 placeholder="Enter order details..."
@@ -267,7 +330,7 @@ export const AddOrder = () => {
                   setDescription(e.target.value);
                   setValue("details", e.target.value);
                 }}
-                className=" min-h-[125px] px-3 py-2 w-full mt-1 border border-gray-300 rounded"
+                className=" min-h-[125px] px-3 py-2 w-full mt-1 border border-gray-300 rounded dark:bg-slate-900 dark:border-slate-700"
               />
             </div>
           </div>
@@ -276,7 +339,7 @@ export const AddOrder = () => {
           <Card bodyClass="p-0 overflow-x-auto mt-5">
             <table className="w-full border min-w-[600px]">
               <thead>
-                <tr className="bg-gray-100">
+                <tr className="bg-gray-100 dark:bg-slate-900 dark:border-slate-700">
                   <th className="p-2 border">Item</th>
                   <th className="p-2 border">Description</th>
                   <th className="p-2 border">Qty</th>
@@ -297,7 +360,7 @@ export const AddOrder = () => {
                         onChange={(e) =>
                           updatePart(index, "description", e.target.value)
                         }
-                        className="w-full py-3 px-2 border rounded-md"
+                        className="w-full py-3 px-2 border rounded-md dark:bg-slate-900 dark:border-slate-700"
                       />
                     </td>
                     <td className="p-2 border">
@@ -305,7 +368,7 @@ export const AddOrder = () => {
                         type="number"
                         value={part.qty}
                         onChange={(e) => updatePart(index, "qty", e.target.value)}
-                        className="w-full py-3 px-2 border rounded-md"
+                        className="w-full py-3 px-2 border rounded-md dark:bg-slate-900 dark:border-slate-700"
                         min={1}
                       />
                       {/* Qty validation */}
@@ -320,7 +383,7 @@ export const AddOrder = () => {
                         type="number"
                         value={part.rate}
                         onChange={(e) => updatePart(index, "rate", e.target.value)}
-                        className="w-full py-3 px-2 border rounded-md"
+                        className="w-full py-3 px-2 border rounded-md dark:bg-slate-900 dark:border-slate-700"
                         min={0}
                       />
                       {/* Rate validation */}
@@ -346,7 +409,7 @@ export const AddOrder = () => {
 
           {/* Validation for parts list */}
           {selectedParts.length === 0 && (
-            <p className="text-red-500 mt-1">Please add at least one spare part</p>
+            <p className="text-red-500 mt-1">Please add at least one Raw Material</p>
           )}
 
           {/* Total Calculation */}

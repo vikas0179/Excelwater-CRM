@@ -22,7 +22,7 @@ export const AddCustomer = () => {
   const [sameAsBilling, setSameAsBilling] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // On mount or when customerData changes, populate the form
+
   useEffect(() => {
     if (customerData) {
       // Set basic info
@@ -46,59 +46,56 @@ export const AddCustomer = () => {
     }
   }, [customerData, setValue]);
 
-  const onSubmit = async (data) => {
-    try {
-      const formData = new FormData();
+ const onSubmit = async (data) => {
+  try {
+    const formData = new FormData();
 
-      // If editing, send the id
-      if (isEditMode) {
-        formData.append("id", customerData.id);
-      }
+    if (isEditMode) {
+      formData.append("id", customerData.id);
+    }
 
-      // Basic info
-      formData.append("name", data.name);
-      formData.append("email", data.email || "");
-      formData.append("mobile", data.mobile);
+    formData.append("name", data.name);
+    formData.append("email", data.email || "");
+    formData.append("mobile", data.mobile);
 
-      // Billing Address
-      formData.append("billing_address", data.billing_address.street || "");
-      // formData.append("billing_landmark", data.billing_address.landmark || "");
-      formData.append("billing_city", data.billing_address.city || "");
-      formData.append("billing_state", data.billing_address.state || "");
-      formData.append("billing_zipcode", data.billing_address.zip || "");
+    formData.append("billing_address", data.billing_address.street || "");
+    formData.append("billing_city", data.billing_address.city || "");
+    formData.append("billing_state", data.billing_address.state || "");
+    formData.append("billing_zipcode", data.billing_address.zip || "");
 
-      // Shipping Address
-      formData.append("shipping_address", data.shipping_address.street || "");
-      // formData.append("shipping_landmark", data.shipping_address.landmark || "");
-      formData.append("shipping_city", data.shipping_address.city || "");
-      formData.append("shipping_state", data.shipping_address.state || "");
-      formData.append("shipping_zipcode", data.shipping_address.zip || "");
+    formData.append("shipping_address", data.shipping_address.street || "");
+    formData.append("shipping_city", data.shipping_address.city || "");
+    formData.append("shipping_state", data.shipping_address.state || "");
+    formData.append("shipping_zipcode", data.shipping_address.zip || "");
 
-      setLoading(true);
+    setLoading(true);
 
-      // Use the edit API if editing, else add API
-      const apiUrl = isEditMode ? API_CUSTOMER_EDIT : API_CUSTOMER_ADD;
-      await Api.post(apiUrl, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+    const apiUrl = isEditMode ? API_CUSTOMER_EDIT : API_CUSTOMER_ADD;
 
-      setLoading(false);
+    const response = await Api.post(apiUrl, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
 
-      if (fromPage === "addinvoice") {
+    setLoading(false);
+
+   
+    if (response?.status === "RC100") {
+      return; 
+    }
+
+    
+    if (fromPage === "addinvoice") {
       navigate("/manage-invoice/add");
-    } else if (fromPage === "manage-customer") {
-      navigate("/manage-customer");
     } else {
-      navigate("/manage-customer"); 
+      navigate("/manage-customer");
     }
 
+  } catch (error) {
+    setLoading(false);
+    toast.error("Something went wrong!");
+  }
+};
 
-     
-    } catch (error) {
-      setLoading(false);
-      toast.error("Something went wrong!");
-    }
-  };
 
   const handleSameAsBilling = (e) => {
     const checked = e.target.checked;
@@ -135,12 +132,12 @@ export const AddCustomer = () => {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block mb-1 font-medium">Name *</label>
+              <label className="block mb-1 font-medium text-black-500 dark:text-slate-300">Name *</label>
               <input
                 type="text"
                 {...register("name", { required: "Name is required" })}
                 placeholder="Enter full name"
-                className="w-full border px-3 py-2 rounded"
+                className="w-full border px-3 py-2 rounded dark:bg-slate-900 dark:border-slate-700"
               />
               {errors.name && (
                 <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
@@ -149,7 +146,7 @@ export const AddCustomer = () => {
             </div>
 
             <div>
-              <label className="block mb-1 font-medium">Email</label>
+              <label className="block mb-1 font-medium text-black-500 dark:text-slate-300">Email</label>
               <input
                 type="email"
                 {...register("email", {
@@ -159,7 +156,7 @@ export const AddCustomer = () => {
                   },
                 })}
                 placeholder="Enter email"
-                className="w-full border px-3 py-2 rounded"
+                className="w-full border px-3 py-2 rounded dark:bg-slate-900 dark:border-slate-700"
               />
               {errors.email && (
                 <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
@@ -168,12 +165,12 @@ export const AddCustomer = () => {
             </div>
 
             <div>
-              <label className="block mb-1 font-medium">Mobile *</label>
+              <label className="block mb-1 font-medium text-black-500 dark:text-slate-300">Mobile *</label>
               <input
                 type="tel"
                 {...register("mobile", { required: "Mobile number is required" })}
                 placeholder="Enter mobile number"
-                className="w-full border px-3 py-2 rounded"
+                className="w-full border px-3 py-2 rounded dark:bg-slate-900 dark:border-slate-700"
               />
               {errors.mobile && (
                 <p className="text-red-500 text-sm mt-1">{errors.mobile.message}</p>
@@ -191,7 +188,7 @@ export const AddCustomer = () => {
                 <input
                   {...register("billing_address.street", { required: "Street is required" })}
                   placeholder="Street / House / Office No."
-                  className="border px-3 py-2 rounded w-full"
+                  className="border px-3 py-2 rounded w-full dark:bg-slate-900 dark:border-slate-700"
                 />
                 {errors.billing_address?.street && (
                   <p className="text-red-500 text-sm mt-1">{errors.billing_address.street.message}</p>
@@ -201,7 +198,7 @@ export const AddCustomer = () => {
                   <input
                     {...register("billing_address.city", { required: "City is required" })}
                     placeholder="City"
-                    className="border px-3 py-2 rounded w-full"
+                    className="border px-3 py-2 rounded w-full dark:bg-slate-900 dark:border-slate-700"
                   />
                   {errors.billing_address?.city && (
                     <p className="text-red-500 text-sm mt-1">{errors.billing_address.city.message}</p>
@@ -229,7 +226,7 @@ export const AddCustomer = () => {
                   <input
                     {...register("billing_address.state", { required: "State is required" })}
                     placeholder="State"
-                    className="border px-3 py-2 rounded w-full"
+                    className="border px-3 py-2 rounded w-full dark:bg-slate-900 dark:border-slate-700"
                   />
                   {errors.billing_address?.state && (
                     <p className="text-red-500 text-sm mt-1">{errors.billing_address.state.message}</p>
@@ -246,7 +243,7 @@ export const AddCustomer = () => {
                       },
                     })}
                     placeholder="Zip Code"
-                    className="border px-3 py-2 rounded w-full"
+                    className="border px-3 py-2 rounded w-full dark:bg-slate-900 dark:border-slate-700"
                   />
                   {errors.billing_address?.zip && (
                     <p className="text-red-500 text-sm mt-1">{errors.billing_address.zip.message}</p>
@@ -281,7 +278,7 @@ export const AddCustomer = () => {
                 <input
                   {...register("shipping_address.street", { required: "Street is required" })}
                   placeholder="Street / House / Office No."
-                  className="border px-3 py-2 rounded w-full"
+                  className="border px-3 py-2 rounded w-full dark:bg-slate-900 dark:border-slate-700"
                 />
                 {errors.shipping_address?.street && (
                   <p className="text-red-500 text-sm mt-1">{errors.shipping_address.street.message}</p>
@@ -292,7 +289,7 @@ export const AddCustomer = () => {
                 <input
                   {...register("shipping_address.city", { required: "City is required" })}
                   placeholder="City"
-                  className="border px-3 py-2 rounded w-full"
+                  className="border px-3 py-2 rounded w-full dark:bg-slate-900 dark:border-slate-700"
                 />
                 {errors.shipping_address?.city && (
                   <p className="text-red-500 text-sm mt-1">{errors.shipping_address.city.message}</p>
@@ -319,7 +316,7 @@ export const AddCustomer = () => {
                 <input
                   {...register("shipping_address.state", { required: "State is required" })}
                   placeholder="State"
-                  className="border px-3 py-2 rounded w-full"
+                  className="border px-3 py-2 rounded w-full dark:bg-slate-900 dark:border-slate-700"
                 />
                 {errors.shipping_address?.state && (
                   <p className="text-red-500 text-sm mt-1">{errors.shipping_address.state.message}</p>
@@ -336,7 +333,7 @@ export const AddCustomer = () => {
                     },
                   })}
                   placeholder="Zip Code"
-                  className="border px-3 py-2 rounded w-full"
+                  className="border px-3 py-2 rounded w-full dark:bg-slate-900 dark:border-slate-700"
                 />
                 {errors.shipping_address?.zip && (
                   <p className="text-red-500 text-sm mt-1">{errors.shipping_address.zip.message}</p>

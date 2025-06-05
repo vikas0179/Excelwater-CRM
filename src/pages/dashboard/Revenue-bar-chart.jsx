@@ -1,67 +1,84 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Chart from "react-apexcharts";
 import useDarkMode from "@/hooks/useDarkMode";
 import useRtl from "@/hooks/useRtl";
+import { API_DASHBOARD_COUNT } from "@/services/ApiEndPoint";
+import Api from "@/services/ApiServices";
 
 const RevenueBarChart = ({ height = 400 }) => {
   const [isDark] = useDarkMode();
   const [isRtl] = useRtl();
+  const [chartData, setChartData] = useState([]);
+
+  const monthMap = {
+    "01": "Jan",
+    "02": "Feb",
+    "03": "Mar",
+    "04": "Apr",
+    "05": "May",
+    "06": "Jun",
+    "07": "Jul",
+    "08": "Aug",
+    "09": "Sep",
+    "10": "Oct",
+    "11": "Nov",
+    "12": "Dec",
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await Api.get(API_DASHBOARD_COUNT);
+        const data = response?.data?.chart_data || {};
+
+        console.log("data", data)
+        const formattedData = Object.keys(monthMap).map((monthKey) => data[monthKey] || 0);
+        setChartData(formattedData);
+      } catch (error) {
+        console.error("Failed to fetch chart data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   const series = [
     {
-      name: "Net Profit",
-      data: [44, 55, 57, 56, 61, 58, 63, 60, 66],
-    },
-    {
       name: "Revenue",
-      data: [76, 85, 101, 98, 87, 105, 91, 114, 94],
-    },
-    {
-      name: "Free Cash Flow",
-      data: [35, 41, 36, 26, 45, 48, 52, 53, 41],
+      data: chartData,
     },
   ];
+
   const options = {
     chart: {
-      toolbar: {
-        show: false,
-      },
+      toolbar: { show: false },
     },
-    plotOptions: {
-      bar: {
-        horizontal: false,
-        endingShape: "rounded",
-        columnWidth: "45%",
-      },
+    stroke: {
+      curve: "smooth",
+      width: 3,
+      colors: ["#4669FA"],
     },
-    legend: {
-      show: true,
-      position: "top",
-      horizontalAlign: "right",
-      fontSize: "12px",
-      fontFamily: "Inter",
-      offsetY: -30,
-      markers: {
-        width: 8,
-        height: 8,
-        offsetY: -1,
-        offsetX: -5,
-        radius: 12,
-      },
+    xaxis: {
+      categories: Object.values(monthMap),
       labels: {
-        colors: isDark ? "#CBD5E1" : "#475569",
+        style: {
+          colors: isDark ? "#CBD5E1" : "#475569",
+          fontFamily: "Inter",
+        },
       },
-      itemMargin: {
-        horizontal: 18,
-        vertical: 0,
+    },
+    yaxis: {
+      labels: {
+        style: {
+          colors: isDark ? "#CBD5E1" : "#475569",
+          fontFamily: "Inter",
+        },
       },
     },
     title: {
-      text: "Revenue Report",
+      text: "Monthly Revenue",
       align: "left",
-
       offsetX: isRtl ? "0%" : 0,
-      offsetY: 13,
-      floating: false,
       style: {
         fontSize: "20px",
         fontWeight: "500",
@@ -69,66 +86,17 @@ const RevenueBarChart = ({ height = 400 }) => {
         color: isDark ? "#fff" : "#0f172a",
       },
     },
-    dataLabels: {
-      enabled: false,
-    },
-    stroke: {
-      show: true,
-      width: 2,
-      colors: ["transparent"],
-    },
-    yaxis: {
-      opposite: isRtl ? true : false,
-      labels: {
-        style: {
-          colors: isDark ? "#CBD5E1" : "#475569",
-          fontFamily: "Inter",
-        },
-      },
-    },
-    xaxis: {
-      categories: [
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-      ],
-      labels: {
-        style: {
-          colors: isDark ? "#CBD5E1" : "#475569",
-          fontFamily: "Inter",
-        },
-      },
-      axisBorder: {
-        show: false,
-      },
-      axisTicks: {
-        show: false,
-      },
-    },
-
-    fill: {
-      opacity: 1,
-    },
     tooltip: {
       y: {
-        formatter: function (val) {
-          return "$ " + val + " thousands";
-        },
+        formatter: (val) => `$ ${val} thousands`,
       },
     },
-    colors: ["#4669FA", "#0CE7FA", "#FA916B"],
     grid: {
       show: true,
       borderColor: isDark ? "#334155" : "#E2E8F0",
       strokeDashArray: 10,
-      position: "back",
     },
+    colors: ["#4669FA"],
     responsive: [
       {
         breakpoint: 600,
@@ -138,18 +106,29 @@ const RevenueBarChart = ({ height = 400 }) => {
             offsetY: 8,
             horizontalAlign: "center",
           },
-          plotOptions: {
-            bar: {
-              columnWidth: "80%",
-            },
-          },
         },
       },
     ],
   };
+
   return (
     <div>
-      <Chart options={options} series={series} type="bar" height={height} />
+      <Chart
+        options={{
+          ...options,
+          chart: { type: "bar", toolbar: { show: false } },
+          plotOptions: {
+            bar: {
+              columnWidth: "50%",
+              // borderRadius: 4,
+            },
+          },
+        }}
+        series={series}
+        type="bar"
+        height={height}
+      />
+
     </div>
   );
 };

@@ -15,6 +15,12 @@ export default defineConfig({
     ],
   },
 
+  server: {
+    host: "192.168.29.199", // Enables access via LAN IP
+    port: 5173, // Optional: set custom port if needed
+  },
+
+
   plugins: [
     rollupReplace({
       preventAssignment: true,

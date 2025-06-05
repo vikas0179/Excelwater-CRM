@@ -12,7 +12,8 @@ import {
 } from "react-icons/fa";
 import { API_DASHBOARD_COUNT } from "@/services/ApiEndPoint";
 import Api from "@/services/ApiServices";
-import RevenueBarChart from "./revenue-bar-chart";
+import RevenueBarChart from "./Revenue-bar-chart";
+
 
 const Dashboard = () => {
   const [allData, setAllData] = useState({});
@@ -42,9 +43,9 @@ const Dashboard = () => {
   }, []);
 
   const cards = [
-    { icon: <FaUsers size={28} />, title: "Total Customer", count: allData.customer_count || 0 },
-    { icon: <FaShoppingCart size={28} />, title: "Total Product", count: allData.product_count || 0 },
-    { icon: <FaFileInvoice size={28} />, title: "Total  Supplier", count: allData.supplier_count || 0 },
+    { icon: <FaUsers size={28} />, title: "Total Customers", count: allData.customer_count || 0 },
+    { icon: <FaShoppingCart size={28} />, title: "Total Products", count: allData.product_count || 0 },
+    { icon: <FaFileInvoice size={28} />, title: "Total  Suppliers", count: allData.supplier_count || 0 },
      { icon: <FaMoneyBillWave size={28} />, title: "Total Revenue", count: allData.total_revenue || 0 }, 
     // { icon: <FaBoxes size={28} />, title: "Raw Material", count: allData.spare_part_count || 0 },
     // { icon: <FaTruck size={28} />, title: "Material Order", count: allData.order_count || 0 },

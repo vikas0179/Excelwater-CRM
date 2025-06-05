@@ -29,8 +29,8 @@ import { AddInvoice } from "./pages/invoice/AddInvoice";
 import InvoicePdf from "./pages/invoice/InvoicePdf";
 import PublicInvoice from "./pages/invoice/PublicInvoice";
 import ManageCustomer from "./pages/Customer/ManageCustomer";
-import {AddCustomer} from "./pages/Customer/AddCustomer";
-import {AlertMaterialReport} from "./pages/AlertMaterialReport/AlertMaterialReport";
+import { AddCustomer } from "./pages/Customer/AddCustomer";
+import { AlertMaterialReport } from "./pages/AlertMaterialReport/AlertMaterialReport";
 
 function App() {
   return (
@@ -59,9 +59,7 @@ function App() {
           <Route path="transfer-leads" element={<TransferLeads />} />
           <Route path="revenue-report" element={<RevenueReport />} />
           <Route path="lead-statistics" element={<LeadStatistics />} />
-
           <Route path="duplicate-leads" element={<DuplicateLead />} />
-
           <Route path="manage-sales-channel" element={<SaleChannel />} /> */}
 
           <Route path="manage-supplier" element={<ManagesSupplier />} />
@@ -90,8 +88,6 @@ function App() {
           <Route path="manage-customer/add/:id" element={<AddCustomer />} />
 
           <Route path="manage-report" element={<AlertMaterialReport />} />
-
-          
 
           <Route path="*" element={<Error />} />
           <Route path="logout" element={<Logout />} />

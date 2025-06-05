@@ -191,7 +191,7 @@ export default function ManageCustomer() {
 
         <Card>
             <div className="md:flex justify-between items-center flex-wrap">
-                <Textinput placeholder="Search" />
+                <Textinput placeholder="Search"  />
                <button
   className="btn btn-outline-dark btn-sm text-center ml-4 flex items-center h-[38px]"
   onClick={() => navigate("/manage-customer/add", { state: { from: "manage-customer" } })}

@@ -21,6 +21,8 @@ export const AddProduct = () => {
   const [spareParts, setSpareParts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState(productData?.image || "");
+  const [sparePartError, setSparePartError] = useState("");
+
 
   console.log("spareParts", spareParts)
 
@@ -57,32 +59,32 @@ export const AddProduct = () => {
   };
 
   const addPart = () => {
-  if (!selectedPart) return toast.error("Please select a valid spare part.");
+    if (!selectedPart) return toast.error("Please select a valid spare part.");
 
-  const selectedSpare = spareParts.find(part => part.part_name === selectedPart);
+    const selectedSpare = spareParts.find(part => part.part_name === selectedPart);
 
-  if (selectedSpare) {
-    const isAlreadyAdded = selectedParts.some(
-      part => part.spare_parts_id === selectedSpare.id
-    );
+    if (selectedSpare) {
+      const isAlreadyAdded = selectedParts.some(
+        part => part.spare_parts_id === selectedSpare.id
+      );
 
-    if (isAlreadyAdded) {
-      return toast.error("This spare part is already added.");
+      if (isAlreadyAdded) {
+        return toast.error("This spare part is already added.");
+      }
+
+      setSelectedParts(prev => [
+        ...prev,
+        {
+          spare_parts_id: selectedSpare.id,
+          item: selectedSpare.part_name,
+          price: selectedSpare.price,
+          qty: selectedSpare.stock_qty === 0 ? 0 : 1,
+          stock_qty: selectedSpare.stock_qty,
+        },
+      ]);
+      setSelectedPart("");
     }
-
-    setSelectedParts(prev => [
-      ...prev,
-      {
-        spare_parts_id: selectedSpare.id,
-        item: selectedSpare.part_name,
-        price: selectedSpare.price,
-        qty: selectedSpare.stock_qty === 0 ? 0 : 1,
-        stock_qty: selectedSpare.stock_qty,
-      },
-    ]);
-    setSelectedPart("");
-  }
-};
+  };
 
 
   const deletePart = (index) => setSelectedParts(selectedParts.filter((_, i) => i !== index));
@@ -102,7 +104,14 @@ export const AddProduct = () => {
 
 
   const onSubmit = async (data) => {
-    if (selectedParts.length === 0) return toast.error("Please select at least one spare part.");
+    if (selectedParts.length === 0) {
+      setSparePartError("Please add at least one Raw Material.");
+      return;
+    } else {
+      setSparePartError("");
+    }
+
+
 
     try {
       const formData = new FormData();
@@ -147,8 +156,8 @@ export const AddProduct = () => {
     <div>
       <Breadcrumbs title={productData ? "Edit Product" : "Add Product"} BreadLink={[{ link: "/manage-product", name: "Products" }]} />
       <Card title={productData ? "Edit Product" : "Add Product"}>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
+        <form onSubmit={handleSubmit(onSubmit)} className=" grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-4">
             <Textinput name="product_name" label="Product Name" type="text" placeholder="Enter product name" register={register}
               error={errors.product_name}
               rules={{ required: "Product name is required" }} />
@@ -203,12 +212,12 @@ export const AddProduct = () => {
             )}
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-600">Raw Material*</label>
+            <label className="block text-sm font-medium text-black-500 dark:text-slate-300">Raw Material*</label>
             <div className="flex items-center gap-2 mt-2">
               <select
                 value={selectedPart}
                 onChange={(e) => setSelectedPart(e.target.value)}
-                className="border p-2 rounded w-full"
+                className="border p-2 rounded w-full dark:bg-slate-900 dark:border-slate-700"
               >
                 <option value="">Select Raw Material</option>
                 {spareParts.map((part) => (
@@ -218,12 +227,17 @@ export const AddProduct = () => {
                 ))}
               </select>
 
+
+
               <button type="button" onClick={addPart} className="btn btn-dark text-white rounded">+</button>
             </div>
+            {sparePartError && (
+              <p className="text-red-500 text-md ">{sparePartError}</p>
+            )}
             <Card bodyClass="p-0 overflow-x-auto mt-5">
               <table className="w-full border min-w-[600px]">
                 <thead>
-                  <tr className="bg-gray-100">
+                  <tr className="bg-gray-100 dark:bg-slate-900 dark:border-slate-700">
                     {/* <th className="p-2 border">Spare Part ID</th> */}
                     <th className="p-2 border">Item</th>
                     <th className="p-2 border">Qty</th>
@@ -241,7 +255,7 @@ export const AddProduct = () => {
                           type="number"
                           value={part.qty}
                           onChange={(e) => updatePart(index, "qty", e.target.value)}
-                          className="w-full py-3 px-2 border rounded-md"
+                          className="w-full py-3 px-2 border rounded-md dark:bg-slate-900 dark:border-slate-700"
                           min={1}
                           max={part.stock_qty}
                         />
