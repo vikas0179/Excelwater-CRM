@@ -65,7 +65,7 @@ export const ManageSpareparts = () => {
     };
 
     const handleDeleteSparePart = async (sparepartsId) => {
-        if (!window.confirm("Are you sure you want to delete this spareparts?")) return;
+        if (!window.confirm("Are you sure you want to delete this Raw Material?")) return;
 
         try {
             setLoading(true);
@@ -78,7 +78,7 @@ export const ManageSpareparts = () => {
 
             if (response && response.status === "RC200") {
                
-                window.location.reload();
+             await getData();
 
             } else {
                 throw new Error(response.message || "Failed to delete sparepart.");
@@ -130,10 +130,20 @@ export const ManageSpareparts = () => {
             Header: " Opening Stock ",
             accessor: "opening_stock"
         },
-        {
-            Header: "Stock Qty",
-            accessor: "stock_qty"
-        },
+       {
+    Header: "Stock Qty",
+    accessor: "stock_qty",
+    Cell: ({ row }) => {
+        const { stock_qty, min_alert_qty } = row.original;
+        const isLow = stock_qty < min_alert_qty;
+
+        return (
+            <span className={isLow ? "text-red-500 font-semibold" : ""}>
+                {stock_qty}
+            </span>
+        );
+    }
+},
         {
             Header: "Description",
             accessor: "desc",

@@ -4,7 +4,7 @@ import { Icon } from '@iconify/react';
 import Textinput from '@/components/ui/Textinput';
 import Card from '@/components/ui/Card';
 import { useNavigate } from 'react-router-dom';
-import { API_INVOCIE_MANAGE_LIST, API_DELETE_INVOICE } from "@/services/ApiEndPoint";
+import { API_INVOCIE_MANAGE_LIST, API_DELETE_INVOICE, API_INVOICE_CHANGE_VOID_STATUS, API_INVOICE_VOIDED_DATA } from "@/services/ApiEndPoint";
 import Api from "@/services/ApiServices";
 import UserTable from "../userTable";
 import LoaderWrapperView from "@/components/LoaderWrapperView";
@@ -12,7 +12,7 @@ import Tooltip from "@/components/ui/Tooltip";
 import { Dialog, Transition } from "@headlessui/react";
 import { QRCodeCanvas } from "qrcode.react";
 import { Popover } from "@headlessui/react";
-
+import { Switch } from '@headlessui/react';
 
 
 export const ManageInvoice = () => {
@@ -28,13 +28,37 @@ export const ManageInvoice = () => {
     const [selectedInvoice, setSelectedInvoice] = useState(null);
     const [isQrOpen, setIsQrOpen] = useState(false);
     const [qrInvoice, setQrInvoice] = useState(null);
+    const [showVoided, setShowVoided] = useState(false);
+    const [isVoidedView, setIsVoidedView] = useState(false);
+
+
+    const handleToggleView = () => {
+        const newState = !isVoidedView;
+        setIsVoidedView(newState);
+        localStorage.setItem("voidedView", newState);
+    };
+
+    useEffect(() => {
+        const savedView = localStorage.getItem("voidedView");
+        if (savedView !== null) {
+            setIsVoidedView(savedView === "true");
+        }
+    }, []);
+
+
+
 
 
     const getData = async () => {
         try {
             setLoading(true);
-            const response = await Api.get(`${API_INVOCIE_MANAGE_LIST}?page=${pageIndex}&size=${size}`);
+            const apiUrl = isVoidedView
+                ? API_INVOICE_VOIDED_DATA
+                : `${API_INVOCIE_MANAGE_LIST}?page=${pageIndex}&size=${size}`;
+
+            const response = await Api.get(apiUrl);
             setLoading(false);
+
             if (response.data && Array.isArray(response.data.data)) {
                 setData(response.data.data);
                 setAllData(response.data);
@@ -45,39 +69,18 @@ export const ManageInvoice = () => {
         } catch (error) {
             setData([]);
             setAllData({});
-        }
-    };
-
-    useEffect(() => {
-        getData();
-    }, [pageIndex]);
-
-    const handleDeleteOrder = async (orderId) => {
-        if (!window.confirm("Are you sure you want to delete this Order?")) return;
-
-        try {
-            setLoading(true);
-
-            const formData = new FormData();
-            formData.append("id", orderId);
-
-            const response = await Api.post(API_DELETE_INVOICE, formData);
-
-
-            if (response && response.status === "RC200") {
-               
-                window.location.reload();
-
-            } else {
-                throw new Error(response.message || "Failed to delete Order.");
-            }
-        } catch (error) {
-            console.error("Error deleting Order:", error);
-            toast.error(error.message || "Error deleting Order.");
-        } finally {
             setLoading(false);
         }
     };
+
+
+
+    useEffect(() => {
+        getData();
+    }, [pageIndex, isVoidedView]);
+
+
+
 
     const handleEditOrder = async (invoice) => {
 
@@ -87,9 +90,6 @@ export const ManageInvoice = () => {
                 return;
             }
 
-
-
-            // Navigate karte waqt order data bhejna
             navigate(`/manage-invoice/add/${invoice.id}`, {
                 state: { invoiceData: invoice }
             });
@@ -104,7 +104,18 @@ export const ManageInvoice = () => {
         setIsModalOpen(true);
     };
 
+    const handleVoidStatusChange = async (invoiceId, status) => {
+        try {
+            const formData = new FormData();
+            formData.append("id", invoiceId);
+            formData.append("status", status ? 1 : 0);
 
+            await Api.post(API_INVOICE_CHANGE_VOID_STATUS, formData);
+            window.location.reload();
+        } catch (error) {
+            toast.error("Failed to update void status.");
+        }
+    };
 
 
     const COLUMNS = [
@@ -156,13 +167,13 @@ export const ManageInvoice = () => {
         },
         {
             Header: "File",
-            accessor: "image", // You can use either "image" or "image_name", accessor is required
+            accessor: "image",
             Cell: ({ cell }) => {
                 const row = cell.row.original;
                 const imageName = row.image_name;
                 const imageUrl = row.image;
 
-                // Agar image_name null ya empty ho, kuch return nahi kare
+
                 if (!imageName) return null;
 
                 const fileName = imageUrl.substring(imageUrl.lastIndexOf("/") + 1);
@@ -187,6 +198,38 @@ export const ManageInvoice = () => {
             },
         },
         {
+            Header: "Void",
+            accessor: "void_status",
+            Cell: ({ row }) => {
+                const invoice = row.original;
+                const [enabled, setEnabled] = useState(invoice.void_status === 1);
+
+                const handleToggle = async () => {
+                    const newStatus = !enabled;
+                    setEnabled(newStatus);
+                    await handleVoidStatusChange(invoice.id, newStatus);
+                };
+
+                return (
+                    <div className="flex items-center gap-2">
+                        <Switch
+                            checked={enabled}
+                            onChange={handleToggle}
+                            className={`${enabled ? "bg-indigo-600" : "bg-gray-300"
+                                } relative inline-flex h-[20px] w-[40px] shrink-0 cursor-pointer rounded-full transition-colors duration-200 ease-in-out`}
+                        >
+                            <span
+                                className={`${enabled ? "translate-x-5" : "translate-x-0"
+                                    } pointer-events-none inline-block h-[20px] w-[20px] transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}
+                            />
+                        </Switch>
+                        <span className="text-sm">{enabled ? "On" : "Void"}</span>
+                    </div>
+                );
+            },
+        },
+
+        {
             Header: "Action",
             accessor: "actions",
             Cell: ({ row }) => {
@@ -207,7 +250,6 @@ export const ManageInvoice = () => {
                         >
                             <Icon icon="heroicons-outline:qrcode" />
                         </button>
-
 
                         {/* Print Invoice */}
                         <Tooltip content="Print Invoice" placement="top">
@@ -231,13 +273,6 @@ export const ManageInvoice = () => {
                             <Icon icon="heroicons:pencil-square" />
                         </button>
 
-                        {/* Delete Invoice */}
-                        <button
-                            className="action-btn text-red-500"
-                            onClick={() => handleDeleteOrder(invoice.id)}
-                        >
-                            <Icon icon="heroicons:trash" />
-                        </button>
                     </div>
                 );
             },
@@ -246,38 +281,44 @@ export const ManageInvoice = () => {
     ];
 
 
-
     return (
         <>
             <div className="md:flex justify-between items-center">
                 <Breadcrumbs title="invoice" />
 
-                {/* <div className="flex items-center ml-2 mb-6 md:mt-0 mt-2">
-                    <button className="btn btn-dark btn-sm text-center ml-4 flex items-center h-[36px]">
-                        <Icon icon="uiw:file-excel" />
-                        &nbsp; Export Suppliers
-                    </button>
-                </div> */}
+
 
             </div>
             <Card>
                 <div className="md:flex justify-between items-center flex-wrap ">
-                    <div className="grow flex items-center flex-wrap">
+                    <button
+                        className={`btn btn-outline-dark btn-sm text-center flex items-center h-[38px] ${isVoidedView ? ' text-black-500' : ''}`}
+                        onClick={handleToggleView}
+                    >
+                        {isVoidedView ? 'Show Active' : 'Void Invoices'}
+                    </button>
+
+
+
+
+                    <div className="md:flex justify-between items-center flex-wrap">
+
+
+
+                        <div className="flex items-center gap-4 md:mt-0 mt-2">
+                            <Textinput placeholder="search" />
+                            <button
+                                className="btn btn-outline-dark btn-sm text-center flex items-center h-[38px]"
+                                onClick={() => {
+                                    navigate("/manage-invoice/add");
+                                }}
+                            >
+                                <Icon icon="heroicons-outline:plus" />
+                                New
+                            </button>
+                        </div>
                     </div>
-                    <div className="flex items-center ml-2 md:mt-0 mt-2">
-                        <Textinput
-                            placeholder="search"
-                        />
-                        <button
-                            className="btn btn-outline-dark btn-sm text-center ml-4 flex items-center h-[38px]"
-                            onClick={() => {
-                                navigate("/manage-invoice/add");
-                            }}
-                        >
-                            <Icon icon="heroicons-outline:plus" />
-                            New
-                        </button>
-                    </div>
+
                 </div>
 
                 <div className='mt-8'>
@@ -289,7 +330,7 @@ export const ManageInvoice = () => {
                             setPageIndex={setPageIndex}
                             pageIndex={pageIndex}
                             setSize={setSize}
-                            Sname="products"
+                            Sname="invoices"
                         />
                     </LoaderWrapperView>
                 </div>
@@ -420,7 +461,6 @@ export const ManageInvoice = () => {
                                         </button>
                                     </div>
 
-
                                     <div className="text-center  p-3">
                                         {qrInvoice && (
                                             <>
@@ -460,10 +500,6 @@ export const ManageInvoice = () => {
                     </div>
                 </Dialog>
             </Transition>
-
-
-
-
 
         </>
     );

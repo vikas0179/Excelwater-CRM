@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import Card from "@/components/ui/Card";
@@ -11,6 +11,7 @@ import Api from "@/services/ApiServices";
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import Select from "react-select";
+import InputMask from "react-input-mask";
 
 
 
@@ -38,16 +39,16 @@ export const AddSupplier = () => {
   const isEditMode = !!supplierData;
 
 
-  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm({
+  const { register, handleSubmit, setValue, watch , control,  formState: { errors } } = useForm({
     defaultValues: {
       name: supplierData?.name || "",
       email: supplierData?.email || "",
       phone: supplierData?.phone || "",
       address: supplierData?.address || "",
       tan_number: supplierData?.tan_number || "",
-     spare_parts: supplierData?.spare_part_ids
-    ? supplierData.spare_part_ids.split(",").map(Number)
-    : [],
+      spare_parts: supplierData?.spare_part_ids
+        ? supplierData.spare_part_ids.split(",").map(Number)
+        : [],
     },
   });
 
@@ -87,28 +88,28 @@ export const AddSupplier = () => {
     getSpareparts();
   }, []);
 
-useEffect(() => {
-  if (supplierData?.spare_part_ids && sparePartsOptions.length > 0) {
-    const sparePartIds = supplierData.spare_part_ids
-      .split(",")
-      .map((id) => Number(id.trim()));
+  useEffect(() => {
+    if (supplierData?.spare_part_ids && sparePartsOptions.length > 0) {
+      const sparePartIds = supplierData.spare_part_ids
+        .split(",")
+        .map((id) => Number(id.trim()));
 
-    const selected = sparePartsOptions.filter((option) =>
-      sparePartIds.includes(option.value)
-    );
+      const selected = sparePartsOptions.filter((option) =>
+        sparePartIds.includes(option.value)
+      );
 
-    setSelectedOptions(selected);
+      setSelectedOptions(selected);
 
-    setValue(
-      "spare_parts",
-      selected.map((opt) => opt.value),
-      { shouldValidate: true }
-    );
-  }
-}, [supplierData, sparePartsOptions, setValue]);
+      setValue(
+        "spare_parts",
+        selected.map((opt) => opt.value),
+        { shouldValidate: true }
+      );
+    }
+  }, [supplierData, sparePartsOptions, setValue]);
 
 
-console.log("supplierData.spare_parts", supplierData?.spare_parts);
+  console.log("supplierData.spare_parts", supplierData?.spare_parts);
 
 
 
@@ -225,8 +226,42 @@ console.log("supplierData.spare_parts", supplierData?.spare_parts);
                 },
               }}
             />
-            <Textinput name="phone" label="Phone Number*" type="text" placeholder="Enter phone number" register={register} error={errors.phone}
-              rules={{ required: "Phone is required" }} />
+           <div>
+  <label className="block mb-1 font-medium text-black-500 dark:text-slate-300">
+    Phone Number *
+  </label>
+  <Controller
+    name="phone"
+    control={control}
+    rules={{
+      required: "Phone number is required",
+      pattern: {
+        value: /^\d{3}-\d{3}-\d{4}$/,
+        message: "Invalid format (e.g., 981-810-3878)",
+      },
+    }}
+    render={({ field }) => (
+      <InputMask
+        mask="999-999-9999"
+        {...field}
+        value={field.value || ""}
+      >
+        {(inputProps) => (
+          <input
+            {...inputProps}
+            type="tel"
+            placeholder="___-___-____"
+            className="w-full border px-3 py-2 rounded dark:bg-slate-900 dark:border-slate-700"
+          />
+        )}
+      </InputMask>
+    )}
+  />
+  {errors.phone && (
+    <p className="text-red-500 text-sm mt-1">{errors.phone.message}</p>
+  )}
+</div>
+
           </div>
 
           {/* Address */}
@@ -247,8 +282,8 @@ console.log("supplierData.spare_parts", supplierData?.spare_parts);
 
 
           {/* TAN Number and Logo Upload */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Textinput name="tan_number" label="TAN Number" type="text" placeholder="Enter TAN Number " register={register} />
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+            {/* <Textinput name="tan_number" label="TAN Number" type="text" placeholder="Enter TAN Number " register={register} /> */}
 
             <div>
               <label className="form-label">Company Logo</label>
@@ -277,20 +312,28 @@ console.log("supplierData.spare_parts", supplierData?.spare_parts);
                 }}
               />
 
-              {/* Logo preview for new file */}
+
               {logoPreview && (
                 <div className="mt-2">
                   <img src={logoPreview} alt="Preview" className="w-32 h-32 border rounded" />
                 </div>
               )}
 
-              {/* Existing logo from DB if editing */}
-              {!logoPreview && supplierData?.logo && (
+
+              {!logoPreview && supplierData?.logo?.trim() && (
                 <div className="mt-2">
-                  <label className="form-label">Existing Image</label>
-                  <img src={supplierData.logo} alt="Company Logo" className="w-32 h-32 border rounded" />
+                  <img
+                    src={supplierData.logo}
+                    alt="Company Logo"
+                    className="w-32 h-32 border rounded"
+                    onError={(e) => {
+                      e.target.style.display = "none";
+                    }}
+                  />
                 </div>
               )}
+
+
 
               {/* Error Message */}
               {errors.supplier_image && (

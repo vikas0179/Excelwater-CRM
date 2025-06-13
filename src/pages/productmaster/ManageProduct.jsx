@@ -66,7 +66,7 @@ export const ManageProduct = () => {
     
             if (response && response.status === "RC200") {
               
-                    window.location.reload();
+                   await getData();
                     
            
             } else {

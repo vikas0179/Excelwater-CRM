@@ -110,10 +110,10 @@ export const ManageOrder = () => {
                 return;
             }
 
-            // Order data ko state me set karna
+           
             setSelectedOrder(order);
 
-            // Navigate karte waqt order data bhejna
+        
             navigate(`/manage-order/add/${order.id}`, {
                 state: { orderData: order }
             });
@@ -126,7 +126,7 @@ export const ManageOrder = () => {
 
 
     const handleDeleteOrder = async (orderId) => {
-        if (!window.confirm("Are you sure you want to delete this Order?")) return;
+        if (!window.confirm("Are you sure you want to delete this Raw Material Order?")) return;
 
         try {
             setLoading(true);
@@ -139,7 +139,7 @@ export const ManageOrder = () => {
 
             if (response && response.status === "RC200") {
              
-                window.location.reload();
+             await getData();
 
             } else {
                 throw new Error(response.message || "Failed to delete Order.");
@@ -303,7 +303,7 @@ const handleSave = async () => {
                             setPageIndex={setPageIndex}
                             pageIndex={pageIndex}
                             setSize={setSize}
-                            Sname="orders"
+                            Sname="Raw Material Orders"
                         />
 
                     </LoaderWrapperView>

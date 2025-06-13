@@ -172,9 +172,7 @@ export const AddInvoice = () => {
 
 
 
-    const onSubmit = async (data) => {
-
-
+    const onSubmit = async (data, isSendMail = false) => {
         if (!customerId) {
             toast.error("Please select a customer");
             return;
@@ -196,18 +194,11 @@ export const AddInvoice = () => {
         }
 
 
-        for (const part of selectProducts) {
-            if (!part.description || part.description.trim() === "") {
-                toast.error(`Please add description for product "${part.name}".`);
-                return;
-            }
-        }
 
         if (!data.description || data.description.trim() === "") {
             toast.error("Invoice description is required.");
             return;
         }
-
 
         const formData = new FormData();
 
@@ -218,11 +209,14 @@ export const AddInvoice = () => {
         formData.append("ship_to", shippingAddress || "");
         formData.append("bill_to", billingAddress || "");
 
+        // Conditionally append is_send_mail
+        if (isSendMail) {
+            formData.append("is_send_mail", "1"); // or true, depending on your API's expected value
+        }
+
         if (selectedFile) {
             formData.append("image", selectedFile);
         }
-
-
 
         selectProducts.forEach((part) => {
             formData.append("product_id[]", part.id);
@@ -236,27 +230,23 @@ export const AddInvoice = () => {
             let response;
 
             if (invoiceData) {
-                // 🛠 Edit order
+                // Edit order
                 formData.append("id", invoiceData.id);
                 response = await Api.post(API_INVOICE_EDIT, formData);
             } else {
-                // ➕ Add new order
+                // Add new order
                 response = await Api.post(API_INVOCIE_ADD, formData);
             }
 
             if (response.data) {
-
                 navigate("/manage-invoice");
             } else {
                 toast.error(response.data?.message);
             }
         } catch (error) {
             console.error("Error:", error);
-            alert("Something went wrong!");
+            toast.error("Something went wrong!");
         }
-
-
-
     };
 
 
@@ -397,7 +387,7 @@ export const AddInvoice = () => {
                                     type="text"
                                     value={invoiceNumber}
                                     onChange={(e) => {
-                                        const value = e.target.value.replace(/\D/g, "").slice(0, 6); // Sirf numbers allow karega aur max 6 digits tak limit karega
+                                        const value = e.target.value.replace(/\D/g, "").slice(0, 6);
                                         setInvoiceNumber(value);
                                     }}
                                     className="dark:bg-slate-900 dark:border-slate-700 py-1.5 sm:py-2 px-3 pe-11 block w-full border border-gray-200 rounded-e-lg sm:text-sm "
@@ -413,31 +403,58 @@ export const AddInvoice = () => {
                                 onChange={handleFileChange}
                             />
 
-                            {/* Show preview if editing existing invoice and image exists */}
-                            {invoiceData?.image && !selectedFile && (
+                            {(selectedFile || (invoiceData?.image && typeof invoiceData.image === 'string' && invoiceData.image.trim() !== '')) && (
                                 <div className="mt-2 flex items-center gap-2">
-                                    {invoiceData.image.endsWith(".pdf") ? (
-                                        <a
-                                            href={invoiceData.image}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-blue-600 underline flex items-center gap-1"
-                                        >
-                                            <svg
-                                                className="w-5 h-5 text-red-600"
-                                                fill="currentColor"
-                                                viewBox="0 0 24 24"
+                                    {selectedFile ? (
+                                        selectedFile.type === 'application/pdf' ? (
+                                            <a
+                                                href={URL.createObjectURL(selectedFile)}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-blue-600 underline flex items-center gap-1"
                                             >
-                                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2... (your preferred PDF icon)" />
-                                            </svg>
-                                            View PDF
-                                        </a>
+                                                <svg
+                                                    className="w-5 h-5 text-red-600"
+                                                    fill="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM6 20V4h7v4h5v12H6z" />
+                                                </svg>
+                                                View Uploaded PDF
+                                            </a>
+                                        ) : (
+                                            <img
+                                                src={URL.createObjectURL(selectedFile)}
+                                                alt="Uploaded Invoice"
+                                                className="h-20 border rounded"
+                                                onError={(e) => (e.target.style.display = 'none')} // Hide image if it fails to load
+                                            />
+                                        )
                                     ) : (
-                                        <img
-                                            src={invoiceData.image}
-                                            alt="Invoice"
-                                            className="h-20 border rounded"
-                                        />
+                                        invoiceData.image.endsWith(".pdf") ? (
+                                            <a
+                                                href={invoiceData.image}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-blue-600 underline flex items-center gap-1"
+                                            >
+                                                <svg
+                                                    className="w-5 h-5 text-red-600"
+                                                    fill="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM6 20V4h7v4h5v12H6z" />
+                                                </svg>
+                                                View PDF
+                                            </a>
+                                        ) : (
+                                            <img
+                                                src={invoiceData.image}
+                                                alt="Invoice"
+                                                className="h-20 border rounded"
+                                                onError={(e) => (e.target.style.display = 'none')} // Hide image if it fails to load
+                                            />
+                                        )
                                     )}
                                 </div>
                             )}
@@ -518,13 +535,20 @@ export const AddInvoice = () => {
                                             />
                                         </td>
                                         <td className="p-2 border">
-                                            <input
-                                                type="number"
-                                                value={part.rate}
-                                                readOnly
-                                                className="w-full py-2 px-2 border rounded-md dark:bg-slate-900 dark:border-slate-700"
-                                            />
+                                            <div className="flex rounded-md overflow-hidden border  border-gray-200 dark:border-slate-700">
+                                                <span className="px-4 flex items-center bg-gray-50 text-sm text-gray-500 dark:bg-slate-900 dark:text-neutral-400 border-r dark:border-slate-700 ">
+                                                    $
+                                                </span>
+                                                <input
+                                                    type="number"
+                                                    value={part.rate}
+                                                    onChange={(e) => updatePart(index, "rate", parseFloat(e.target.value))}
+                                                    className="w-full py-2 px-2 text-sm border-0 focus:ring-0 dark:bg-slate-900 dark:text-white"
+                                                />
+
+                                            </div>
                                         </td>
+
                                         <td className="p-2 border text-center">
                                             ${part.qty * part.rate}
                                         </td>
@@ -541,15 +565,38 @@ export const AddInvoice = () => {
                         </table>
                     </Card>
 
+
                     {/* Totals */}
-                    <div className="grid justify-items-end text-right text-lg font-semibold">
-                        <span>Sub Total: ${selectProducts.reduce((sum, part) => sum + part.qty * part.rate, 0)}</span>
-                        <span>Total: ${selectProducts.reduce((sum, part) => sum + part.qty * part.rate, 0)}</span>
+                    <div className="grid justify-items-end text-right text-lg font-semibold mt-4 space-y-1">
+                        <span>
+                            Sub Total: $
+                            {selectProducts.reduce((sum, part) => sum + part.qty * part.rate, 0).toFixed(2)}
+                        </span>
+                        <span>
+                            HST (13%): $
+                            {(selectProducts.reduce((sum, part) => sum + part.qty * part.rate, 0) * 0.13).toFixed(2)}
+                        </span>
+                        <span>
+                            Total: $
+                            {(selectProducts.reduce((sum, part) => sum + part.qty * part.rate, 0) * 1.13).toFixed(2)}
+                        </span>
                     </div>
+
 
                     {/* Buttons */}
                     <div className="flex justify-end gap-2">
-                        <Button type="submit" text="Save" className="btn btn-dark px-6 py-2" />
+                        <Button
+                            type="button"
+                            text="Save"
+                            className="btn btn-dark px-6 py-2"
+                            onClick={handleSubmit((data) => onSubmit(data, false))} 
+                        />
+                        <Button
+                            type="button"
+                            text="Save & Send"
+                            className="btn btn-dark px-6 py-2"
+                            onClick={handleSubmit((data) => onSubmit(data, true))}
+                        />
                     </div>
                 </form>
             </Card>

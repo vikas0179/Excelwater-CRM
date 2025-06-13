@@ -82,7 +82,7 @@ export const ManagesSupplier = () => {
             console.log("Delete API Response:", response);
 
             if (response && response.status === "RC200") {
-                window.location.reload();
+        await getData();
 
             } else {
                 throw new Error(response.message || "Failed to delete supplier.");

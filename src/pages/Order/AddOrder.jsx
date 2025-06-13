@@ -6,7 +6,6 @@ import Button from "@/components/ui/Button";
 import { IoMdSettings } from "react-icons/io";
 import { MdDelete } from "react-icons/md";
 import {
-  API_GET_ALL_SPARE_PARTS_DATA,
   API_GET_ALL_SUPPLIER_DATA,
   API_ORDER_ADD,
   API_GET_SUPPLIERWISE_SPAREPARTS,
@@ -41,23 +40,6 @@ export const AddOrder = () => {
 
   const selectedSupplier = watch("supplier");
 
-  // useEffect(() => {
-  //   if (orderData) {
-  //     setValue("supplier", orderData.supplier_id);
-  //     setValue("details", orderData.desc);
-
-  //     if (orderData.order_items) {
-  //       const formattedParts = orderData.order_items.map((item) => ({
-  //         name: item.item,
-  //         description: item.desc || "",
-  //         qty: item.qty || 1,
-  //         rate: item.rate || 0,
-  //         amount: item.amount || 0,
-  //       }));
-  //       setSelectedParts(formattedParts);
-  //     }
-  //   }
-  // }, [orderData, setValue]);
 
 
   useEffect(() => {
@@ -102,39 +84,37 @@ export const AddOrder = () => {
 
 
   useEffect(() => {
-  if (orderData && sparePartsOptions.length > 0) {
-    // Map order items to match available spare parts in current options
-    const formattedParts = orderData.order_items
-      .map((item) => {
-        // Confirm part exists in sparePartsOptions for this supplier
-        const matchingPart = sparePartsOptions.find(
-          (spare) => spare.part_name === item.item
-        );
-        if (!matchingPart) return null;
+    if (orderData && sparePartsOptions.length > 0) {
 
-        return {
-          name: item.item,
-          description: item.desc || "",
-          qty: item.qty || 1,
-          rate: item.rate || 0,
-          amount: item.amount || 0,
-        };
-      })
-      .filter(Boolean); // remove nulls if any
+      const formattedParts = orderData.order_items
+        .map((item) => {
 
-    setSelectedParts(formattedParts);
-  }
-}, [sparePartsOptions, orderData]);
+          const matchingPart = sparePartsOptions.find(
+            (spare) => spare.part_name === item.item
+          );
+          if (!matchingPart) return null;
+
+          return {
+            name: item.item,
+            description: item.desc || "",
+            qty: item.qty || 1,
+            rate: item.rate || 0,
+            amount: item.amount || 0,
+          };
+        })
+        .filter(Boolean);
+      setSelectedParts(formattedParts);
+    }
+  }, [sparePartsOptions, orderData]);
 
 
-useEffect(() => {
-  if (orderData) {
-    setValue("supplier", orderData.supplier_id);
-    setDescription(orderData.desc || "");
-    setValue("details", orderData.desc || "");
-    // Note: selectedParts ko sparePartsOptions ke aane par set karenge, isliye yaha nahi karenge
-  }
-}, [orderData, setValue]);
+  useEffect(() => {
+    if (orderData) {
+      setValue("supplier", orderData.supplier_id);
+      setDescription(orderData.desc || "");
+      setValue("details", orderData.desc || "");
+    }
+  }, [orderData, setValue]);
 
   useEffect(() => {
     const getSupplier = async () => {
@@ -291,7 +271,7 @@ useEffect(() => {
                     onChange={(e) => setSelectedPartId(e.target.value)}
                     className="border p-2 rounded w-full dark:bg-slate-900 dark:border-slate-700s"
                     value={selectedPartId}
-                    disabled={!selectedSupplier} // disable if no supplier selected
+                    disabled={!selectedSupplier}
                   >
                     <option value="">Select Raw Material</option>
                     {sparePartsOptions
@@ -379,20 +359,25 @@ useEffect(() => {
                       ) : null}
                     </td>
                     <td className="p-2 border">
-                      <input
-                        type="number"
-                        value={part.rate}
-                        onChange={(e) => updatePart(index, "rate", e.target.value)}
-                        className="w-full py-3 px-2 border rounded-md dark:bg-slate-900 dark:border-slate-700"
-                        min={0}
-                      />
+                      <div className="flex items-center border rounded-md  dark:border-slate-700 dark:bg-slate-900 overflow-hidden">
+                        <span className="px-4 bg-gray-50 text-gray-500 dark:bg-slate-900 dark:text-neutral-400 border-r dark:border-slate-700 py-2">
+                          $
+                        </span>
+                       <input
+  type="number"
+  value={part.rate}
+  readOnly
+  className="w-full  px-2 bg-transparent focus:outline-none dark:text-white cursor-not-allowed"
+  min={0}
+/>
+
+                      </div>
                       {/* Rate validation */}
                       {part.rate === "" || part.rate < 0 ? (
-                        <p className="text-red-500 text-xs mt-1">
-                          Rate cannot be negative
-                        </p>
+                        <p className="text-red-500 text-xs mt-1">Rate cannot be negative</p>
                       ) : null}
                     </td>
+
                     <td className="p-2 border text-right">${part.amount}</td>
                     <td className="p-2 border text-center">
                       <MdDelete
@@ -407,7 +392,7 @@ useEffect(() => {
             </table>
           </Card>
 
-          {/* Validation for parts list */}
+
           {selectedParts.length === 0 && (
             <p className="text-red-500 mt-1">Please add at least one Raw Material</p>
           )}

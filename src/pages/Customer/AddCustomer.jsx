@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 
@@ -8,15 +8,17 @@ import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import Button from "@/components/ui/Button";
 import { API_CUSTOMER_ADD, API_CUSTOMER_EDIT } from "@/services/ApiEndPoint";
 import Api from "@/services/ApiServices";
+import InputMask from "react-input-mask";
 
 export const AddCustomer = () => {
-  const { register, handleSubmit, setValue, getValues, formState: { errors } } = useForm();
+  const { register, handleSubmit, setValue, getValues, control, formState: { errors } } = useForm();
+
 
   const navigate = useNavigate();
   const location = useLocation();
 
-  const customerData = location.state?.customerData; 
-   const fromPage = location.state?.from;
+  const customerData = location.state?.customerData;
+  const fromPage = location.state?.from;
   const isEditMode = !!customerData;
 
   const [sameAsBilling, setSameAsBilling] = useState(false);
@@ -25,19 +27,18 @@ export const AddCustomer = () => {
 
   useEffect(() => {
     if (customerData) {
-      // Set basic info
       setValue("name", customerData.name || "");
       setValue("email", customerData.email || "");
       setValue("mobile", customerData.mobile || "");
 
-      // Set billing address
+     
       setValue("billing_address.street", customerData.billing_address || "");
       // setValue("billing_address.landmark", customerData.billing_landmark || "");
       setValue("billing_address.city", customerData.billing_city || "");
       setValue("billing_address.state", customerData.billing_state || "");
       setValue("billing_address.zip", customerData.billing_zipcode || "");
 
-      // Set shipping address
+     
       setValue("shipping_address.street", customerData.shipping_address || "");
       // setValue("shipping_address.landmark", customerData.shipping_landmark || "");
       setValue("shipping_address.city", customerData.shipping_city || "");
@@ -46,55 +47,55 @@ export const AddCustomer = () => {
     }
   }, [customerData, setValue]);
 
- const onSubmit = async (data) => {
-  try {
-    const formData = new FormData();
+  const onSubmit = async (data) => {
+    try {
+      const formData = new FormData();
 
-    if (isEditMode) {
-      formData.append("id", customerData.id);
+      if (isEditMode) {
+        formData.append("id", customerData.id);
+      }
+
+      formData.append("name", data.name);
+      formData.append("email", data.email || "");
+      formData.append("mobile", data.mobile);
+
+      formData.append("billing_address", data.billing_address.street || "");
+      formData.append("billing_city", data.billing_address.city || "");
+      formData.append("billing_state", data.billing_address.state || "");
+      formData.append("billing_zipcode", data.billing_address.zip || "");
+
+      formData.append("shipping_address", data.shipping_address.street || "");
+      formData.append("shipping_city", data.shipping_address.city || "");
+      formData.append("shipping_state", data.shipping_address.state || "");
+      formData.append("shipping_zipcode", data.shipping_address.zip || "");
+
+      setLoading(true);
+
+      const apiUrl = isEditMode ? API_CUSTOMER_EDIT : API_CUSTOMER_ADD;
+
+      const response = await Api.post(apiUrl, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      setLoading(false);
+
+
+      if (response?.status === "RC100") {
+        return;
+      }
+
+
+      if (fromPage === "addinvoice") {
+        navigate("/manage-invoice/add");
+      } else {
+        navigate("/manage-customer");
+      }
+
+    } catch (error) {
+      setLoading(false);
+      toast.error("Something went wrong!");
     }
-
-    formData.append("name", data.name);
-    formData.append("email", data.email || "");
-    formData.append("mobile", data.mobile);
-
-    formData.append("billing_address", data.billing_address.street || "");
-    formData.append("billing_city", data.billing_address.city || "");
-    formData.append("billing_state", data.billing_address.state || "");
-    formData.append("billing_zipcode", data.billing_address.zip || "");
-
-    formData.append("shipping_address", data.shipping_address.street || "");
-    formData.append("shipping_city", data.shipping_address.city || "");
-    formData.append("shipping_state", data.shipping_address.state || "");
-    formData.append("shipping_zipcode", data.shipping_address.zip || "");
-
-    setLoading(true);
-
-    const apiUrl = isEditMode ? API_CUSTOMER_EDIT : API_CUSTOMER_ADD;
-
-    const response = await Api.post(apiUrl, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-
-    setLoading(false);
-
-   
-    if (response?.status === "RC100") {
-      return; 
-    }
-
-    
-    if (fromPage === "addinvoice") {
-      navigate("/manage-invoice/add");
-    } else {
-      navigate("/manage-customer");
-    }
-
-  } catch (error) {
-    setLoading(false);
-    toast.error("Something went wrong!");
-  }
-};
+  };
 
 
   const handleSameAsBilling = (e) => {
@@ -114,8 +115,6 @@ export const AddCustomer = () => {
     }
   };
 
-  const states = ["Gujarat", "Maharashtra", "Rajasthan", "Punjab", "Delhi"];
-  const cities = ["Ahmedabad", "Mumbai", "Jaipur", "Chandigarh", "New Delhi"];
 
   return (<>
 
@@ -165,18 +164,40 @@ export const AddCustomer = () => {
             </div>
 
             <div>
-              <label className="block mb-1 font-medium text-black-500 dark:text-slate-300">Mobile *</label>
-              <input
-                type="tel"
-                {...register("mobile", { required: "Mobile number is required" })}
-                placeholder="Enter mobile number"
-                className="w-full border px-3 py-2 rounded dark:bg-slate-900 dark:border-slate-700"
+              <label className="block mb-1 font-medium text-black-500 dark:text-slate-300">
+                Mobile *
+              </label>
+              <Controller
+                name="mobile"
+                control={control}
+                rules={{
+                  required: "Mobile number is required",
+                  pattern: {
+                    value: /^\d{3}-\d{3}-\d{4}$/,
+                    message: "Invalid mobile number format (e.g., 647-212-4552)",
+                  },
+                }}
+                render={({ field }) => (
+                  <InputMask
+                    mask="999-999-9999"
+                    {...field}
+                    value={field.value || ""}
+                  >
+                    {(inputProps) => (
+                      <input
+                        {...inputProps}
+                        type="tel"
+                        className="w-full border px-3 py-2 rounded dark:bg-slate-900 dark:border-slate-700"
+                      />
+                    )}
+                  </InputMask>
+                )}
               />
               {errors.mobile && (
                 <p className="text-red-500 text-sm mt-1">{errors.mobile.message}</p>
               )}
-
             </div>
+
           </div>
 
 
@@ -194,16 +215,16 @@ export const AddCustomer = () => {
                   <p className="text-red-500 text-sm mt-1">{errors.billing_address.street.message}</p>
                 )}
               </div>
-               <div>
-                  <input
-                    {...register("billing_address.city", { required: "City is required" })}
-                    placeholder="City"
-                    className="border px-3 py-2 rounded w-full dark:bg-slate-900 dark:border-slate-700"
-                  />
-                  {errors.billing_address?.city && (
-                    <p className="text-red-500 text-sm mt-1">{errors.billing_address.city.message}</p>
-                  )}
-                </div>
+              <div>
+                <input
+                  {...register("billing_address.city", { required: "City is required" })}
+                  placeholder="City"
+                  className="border px-3 py-2 rounded w-full dark:bg-slate-900 dark:border-slate-700"
+                />
+                {errors.billing_address?.city && (
+                  <p className="text-red-500 text-sm mt-1">{errors.billing_address.city.message}</p>
+                )}
+              </div>
 
               {/* <div>
                 <input
@@ -220,7 +241,7 @@ export const AddCustomer = () => {
             {/* Inside Billing Address block */}
             <div className="mt-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-               
+
 
                 <div>
                   <input
@@ -242,6 +263,7 @@ export const AddCustomer = () => {
                         message: "Zip code must be 5 or 6 digits",
                       },
                     })}
+                    maxLength={6}
                     placeholder="Zip Code"
                     className="border px-3 py-2 rounded w-full dark:bg-slate-900 dark:border-slate-700"
                   />
@@ -285,7 +307,7 @@ export const AddCustomer = () => {
                 )}
               </div>
 
-                <div>
+              <div>
                 <input
                   {...register("shipping_address.city", { required: "City is required" })}
                   placeholder="City"
@@ -310,7 +332,7 @@ export const AddCustomer = () => {
 
             {/* Inside Shipping Address block */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-            
+
 
               <div>
                 <input
@@ -332,6 +354,7 @@ export const AddCustomer = () => {
                       message: "Zip code must be 5 or 6 digits",
                     },
                   })}
+                  maxLength={6}
                   placeholder="Zip Code"
                   className="border px-3 py-2 rounded w-full dark:bg-slate-900 dark:border-slate-700"
                 />

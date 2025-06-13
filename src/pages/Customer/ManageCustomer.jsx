@@ -33,7 +33,7 @@ export default function ManageCustomer() {
             const response = await Api.get(`${API_CUSTOMER_MANAGE_LIST}?page=${pageIndex}&size=${size}`);
             setLoading(false);
             if (response.data && response.data.data && Array.isArray(response.data.data)) {
-                // Map over data to shape addresses
+      
                 const formattedData = response.data.data.map(item => ({
                     ...item,
                     billingAddress: {
@@ -94,7 +94,7 @@ export default function ManageCustomer() {
 
 
             if (response && response.status === "RC200") {
-                window.location.reload();
+                 await getData();
 
             } else {
                 throw new Error(response.message || "Failed to delete Customer.");
@@ -191,14 +191,14 @@ export default function ManageCustomer() {
 
         <Card>
             <div className="md:flex justify-between items-center flex-wrap">
-                <Textinput placeholder="Search"  />
-               <button
-  className="btn btn-outline-dark btn-sm text-center ml-4 flex items-center h-[38px]"
-  onClick={() => navigate("/manage-customer/add", { state: { from: "manage-customer" } })}
->
-  <Icon icon="heroicons-outline:plus" />
-  New
-</button>
+                <Textinput placeholder="Search" />
+                <button
+                    className="btn btn-outline-dark btn-sm text-center ml-4 flex items-center h-[38px]"
+                    onClick={() => navigate("/manage-customer/add", { state: { from: "manage-customer" } })}
+                >
+                    <Icon icon="heroicons-outline:plus" />
+                    New
+                </button>
 
             </div>
 
@@ -211,7 +211,7 @@ export default function ManageCustomer() {
                         setPageIndex={setPageIndex}
                         pageIndex={pageIndex}
                         setSize={setSize}
-                        Sname="orders"
+                        Sname="customers"
                     />
 
                 </LoaderWrapperView>
